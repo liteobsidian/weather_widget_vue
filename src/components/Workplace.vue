@@ -63,8 +63,8 @@ const init = async () => {
   try {
     loading.value = true
     const currentLocation = await fetchLocate()
-    localStorage.setItem('locations', JSON.stringify([{country: currentLocation.country, city: currentLocation.city}]))
-    locations.value = [{ country: currentLocation.country, city: currentLocation.city }]
+    localStorage.setItem('locations', JSON.stringify([{country: currentLocation.country_name, city: currentLocation.city}]))
+    locations.value = [{ country: currentLocation.country_name, city: currentLocation.city }]
     await refreshWeather()
   } catch (e) {
     console.error(e)
@@ -73,6 +73,7 @@ const init = async () => {
   }
 }
 onBeforeMount(() => {
+  console.log(Geolocation)
   init()
 })
 </script>

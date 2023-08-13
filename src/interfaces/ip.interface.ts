@@ -1,4 +1,4 @@
 export interface IpInterface {
     city: string;
-    country: string;
+    country_name: string;
 }
