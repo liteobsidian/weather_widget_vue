@@ -1,18 +1,20 @@
 <template>
   <div class='container'>
-    <h2 class='mt-md'>My realization</h2>
+    <h2 class='mt-md'>Weather</h2>
     <div class="grid-container mt-md" v-if='!showSettings'>
       <Card class='card' v-for='(card, idx) in weather' :model-value='card' :idx='idx' @toggle-settings='toggleSettings'/>
     </div>
-    <Settings v-else @toggle-settings='toggleSettings'/>
+    <Settings v-else @toggle-settings='toggleSettings' @update='init'/>
   </div>
 </template>
 
 <script setup lang="ts">
-import {ref, computed, onBeforeMount} from 'vue'
-import { fetchWeather } from '@/api'
+import {computed, onBeforeMount, ref} from 'vue'
+import {fetchLocate, fetchWeather} from '@/api'
 import Card from './Card.vue'
 import Settings from './Settings.vue'
+import {LocationsInterface} from '@/interfaces/locations.interface'
+import {WeatherInterface} from '@/interfaces/weather.interface'
 
 const props = defineProps({
   loading: {
@@ -21,8 +23,8 @@ const props = defineProps({
   }
 })
 const emits = defineEmits(['update:loading'])
-const locations = ref([{ city: 'Moscow', country: 'RU' }])
-const weather = ref([])
+const locations = ref<Array<LocationsInterface>>([])
+const weather = ref<Array<WeatherInterface>>([])
 const showSettings = ref(false)
 const loading = computed({
   get: () => props.loading,
@@ -32,12 +34,13 @@ const loading = computed({
 const refreshWeather = async () => {
   try {
     loading.value = true
-    const promises: any[] = []
+    const promises: Array<Promise<WeatherInterface>> = []
     locations.value.forEach(el => promises.push(fetchWeather(el.city, el.country)))
-    const result: any = await Promise.all(promises)
-    weather.value = result.map((el: { data: any }) => el.data)
-    // const data = await fetchWeather('Lipetsk', 'RU')
-    console.log('result', weather.value)
+    const data = await Promise.allSettled(promises)
+    const result = (data.filter(
+        (res) => res.status === "fulfilled"
+    ) as PromiseFulfilledResult<WeatherInterface>[] | undefined);
+    if (result) weather.value = result.map(el => el.value)
   } catch (e) {
     console.error(e)
   } finally {
@@ -47,10 +50,30 @@ const refreshWeather = async () => {
 const toggleSettings = () => {
   showSettings.value = !showSettings.value
 }
+const updateLocations = () => {
+  locations.value = JSON.parse(<string>localStorage.getItem('locations'))
+}
+const init = async () => {
+  const locationsFromStorage = localStorage.getItem('locations')
+  if (locationsFromStorage) {
+    updateLocations()
+    await refreshWeather()
+    return
+  }
+  try {
+    loading.value = true
+    const currentLocation = await fetchLocate()
+    localStorage.setItem('locations', JSON.stringify([{country: currentLocation.country, city: currentLocation.city}]))
+    locations.value = [{ country: currentLocation.country, city: currentLocation.city }]
+    await refreshWeather()
+  } catch (e) {
+    console.error(e)
+  } finally {
+    loading.value = false
+  }
+}
 onBeforeMount(() => {
-  locations.value = JSON.parse(<string>localStorage.getItem('locations')) || []
-  // localStorage.setItem("locations", JSON.stringify([{ city: 'Lipetsk', country: 'RU' }]))
-  refreshWeather()
+  init()
 })
 </script>
 

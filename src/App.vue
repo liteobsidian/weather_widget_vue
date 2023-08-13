@@ -1,15 +1,9 @@
 <template>
-  <div v-if='loading' id='loading'>
-    <h1>Loading</h1>
-  </div>
-  <Workplace v-model:loading='loading'/>
+  <Workplace/>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
 import Workplace from './components/Workplace.vue'
-
-const loading = ref(false)
 </script>
 
 <style lang="scss">
