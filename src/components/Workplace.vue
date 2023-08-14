@@ -73,7 +73,6 @@ const init = async () => {
   }
 }
 onBeforeMount(() => {
-  console.log(Geolocation)
   init()
 })
 </script>

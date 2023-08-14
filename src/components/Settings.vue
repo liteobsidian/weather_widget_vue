@@ -67,7 +67,7 @@ const addLocation = () => {
 }
 const deleteLocation = (index: number) => {
   locations.value.splice(index, 1)
-  localStorage.setItem('locations', JSON.stringify(locations))
+  localStorage.setItem('locations', JSON.stringify(locations.value))
   emits('update')
 }
 const getCities = async (country: string) => {
