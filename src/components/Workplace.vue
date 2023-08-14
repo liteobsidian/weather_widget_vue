@@ -54,8 +54,8 @@ const updateLocations = () => {
   locations.value = JSON.parse(<string>localStorage.getItem('locations'))
 }
 const init = async () => {
-  const locationsFromStorage = localStorage.getItem('locations')
-  if (locationsFromStorage) {
+  const locationsFromStorage = JSON.parse(<string>localStorage.getItem('locations'))
+  if (locationsFromStorage?.length) {
     updateLocations()
     await refreshWeather()
     return
